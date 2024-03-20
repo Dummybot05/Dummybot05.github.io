@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Recommended</title>
+    <meta name="description" content="This is a description of my website.">
+    <meta name="keywords" content="HTML, CSS, JavaScript">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    </head>
+    <body>
+    <div id="outer">
+      <div id="showRec">
+        
+    </div>
+  </div>
+  <h1>Recipes</h1>
+  <input placeholder="Enter Ingredients ' , '(comma) separated" id="inp1" required /><br />
+  <select default="10" id="inp2">
+     <option value="10" >10 Recipes (No of Recipes)</option>
+     <option value="20" >20 Recipes</option>
+     <option value="40" >40 Recipes</option>
+     <option value="80" >80 Recipes</option>
+     <option value="100" >Max Recipes</option>
+  </select>
+  <button onclick="show()">Submit</button>  
+  <script>
+var ing = document.getElementById("inp1");
+var ing2 = document.getElementById("inp2");
+var ii = "";
+      
+function show() {
+   var urrl = `https://api.spoonacular.com/recipes/findByIngredients?apiKey=3880a8fda53546d18d9b18b1b8fae659&ingredients=${ing.value}&number=${ing2.value}`;
+   fetch(urrl).then(res => res.json()).then(data => {
+         
+ for(i = 0; i < data.length; i++) {
+   var used = "• ";
+   for(z = 0; z < data[i].usedIngredientCount; z++) {
+      used += data[i].usedIngredients[z].name + ' • ';
+   }
+   
+   var missed = "• ";
+   for(y = 0; y < data[i].missedIngredientCount; y++) {
+      missed += data[i].missedIngredients[y].name + ' • ';
+   }
+   
+   var disp = `
+<div class="boxes">
+    <div id="cunt">Recipe No.${i+1}, ID: ${data[i].id}</div>
+    <p id="title">${data[i].title}</p>
+    <img src=${data[i].image} id="mainImg" />
+    <p><b>Rating/Likes: </b>${data[i].likes}</p>
+    <p><b>Used Ingredients:</b><br />${used}</p>
+
+   `;
+   
+   for(w = 0; w < data[i].usedIngredientCount; w++) {
+     disp += `
+       <img src=${data[i].usedIngredients[w].image} />
+     `;
+   }
+
+   disp += `
+     <p><b>Missed Ingredients:</b><br />${missed}</p>
+   `;
+
+   for(x = 0; x < data[i].missedIngredientCount; x++) {
+      disp += `
+       <img src=${data[i].missedIngredients[x].image} />
+     `;
+   }
+    
+   disp += `
+     <button onclick="itemshow(${data[i].id})">View Full Recipe</button>
+     </div>
+   `;
+   document.body.innerHTML += disp;
+}
+});
+}
+function cutit() {
+  document.getElementById("outer").style.display = "none";
+}
+
+function itemshow(ii) {
+    var urrl2 = `https://api.spoonacular.com/recipes/${ii}/information?includeNutrition=false&apiKey=3880a8fda53546d18d9b18b1b8fae659`;  
+    fetch(urrl2).then(res2 => res2.json()).then(recipeData => {  
+  
+    const recipeInfoHTML = `
+      <h3>Recipe Information:</h3>
+      <ul id="f1">
+      <li>Title: ${recipeData.title}</li>
+      <li>Servings: ${recipeData.servings}</li>
+      <li>Ready In Minutes: ${recipeData.readyInMinutes}</li>
+      <li>Price Per Serving: $${recipeData.pricePerServing}</li>
+      <li>Aggregate Likes: ${recipeData.aggregateLikes}</li>
+      <li>Health Score: ${recipeData.healthScore}</li>
+      <li>Source: ${recipeData.sourceName}</li>
+      <li>License: ${recipeData.license}</li>
+      <li>Source URL: <a href="${recipeData.sourceUrl}" target="_blank">${recipeData.title} Recipe</a></li>
+      </ul>
+`;  
+
+var ingredientsHTML = `
+   <h3>Ingredients:</h3>
+   <ul>
+`;
+recipeData.extendedIngredients.forEach(ingr => {
+  ingredientsHTML += `
+     <li>${ingr.original}</li>
+  `;
+});
+ingredientsHTML += '</ul>';
+
+var instructionsHTML = `
+   <h3>Instructions:</h3>
+   <ol>
+`;
+recipeData.analyzedInstructions[0].steps.forEach(step => {
+  instructionsHTML += `<li>${step.step}</li>`;
+});
+instructionsHTML += '</ol>';
+  
+document.getElementById("showRec").innerHTML = `
+   <div id="cancel" onclick="cutit()">
+      <div>x</div>
+   </div>
+   <h1>${recipeData.title}</h1>
+   <img src="${recipeData.image}" />
+      ${recipeInfoHTML}
+      ${ingredientsHTML}
+      ${instructionsHTML}
+   <h1>There you go...</h1>
+`; 
+});  
+  document.getElementById("outer").style.display = "block";
+}
+    </script>
+  </body>
+</html>
